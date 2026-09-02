@@ -1,0 +1,19 @@
+# providers.yaml — 提供方登记表（课1.1）
+# 厂商差异 = base_url / key 来源 / 启停，全部下沉到这里，代码里没有厂商逻辑。
+# 支持 ${ENV} 环境变量引用（加载时展开）。
+
+deepseek:
+  base_url: https://api.deepseek.com
+  key_env: DEEPSEEK_API_KEY
+  enabled: true
+
+qwen:
+  base_url: ${DASHSCOPE_BASE_URL}    # 阿里云专属 MaaS 端点，来自 ~/.config/aliyun/cc.env
+  key_env: DASHSCOPE_API_KEY
+  enabled: true
+
+kimi:
+  base_url: https://api.moonshot.cn/v1   # 实测确认；api.kimi.com 为 404
+  key_env: MOONSHOT_API_KEY
+  enabled: true                          # 2026-08-18 密钥就绪，激活后补位
+  rpm: 3                                 # 组织级限速：任意 60s 最多 3 次

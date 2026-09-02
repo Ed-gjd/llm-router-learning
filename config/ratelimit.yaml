@@ -1,0 +1,22 @@
+# ratelimit.yaml — 分布式限流配置（课4.x）
+# backend: auto=优先 Redis、不可用自动降级本地；redis=强制 Redis（不可用即报错）；local=只用本地
+backend: auto
+redis:
+  url: redis://127.0.0.1:6379/0
+  socket_connect_timeout: 0.5
+  socket_timeout: 0.5
+fail: local          # Redis 故障降级: local(本地兜底) | closed(拒绝)
+rules:
+  - dimension: ip
+    algorithm: sliding-window
+    limit: 60
+    window: 60
+  - dimension: global
+    algorithm: sliding-window
+    limit: 30
+    window: 60
+  - dimension: agent
+    algorithm: concurrency
+    max_concurrency: 2
+    lease: 600
+  # provider 维度不用写规则：限额沿用 providers.yaml 的 rpm 字段（如 kimi: rpm 3）

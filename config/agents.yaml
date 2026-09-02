@@ -1,0 +1,77 @@
+# agents.yaml — coding CLI 注册表（课2.2 多 agent 扩展）
+# cmd: 命令名; args: 无头参数模板，{prompt} 会被替换; parse: 输出解析器;
+# model_flag: 运行时换模型的旗标（不设=该 CLI 不支持/未验证）
+# 后端配置：gemini 用 GEMINI_API_KEY(cc.env)；qwen 用 DASHSCOPE；kimi 用 MOONSHOT；
+#          hermes/opencode 走各自 provider 配置；claude/codex 已指向 DeepSeek。
+
+claude:
+  cmd: claude
+  args: ["-p", "{prompt}", "--output-format", "json"]
+  parse: claude_json
+  model_flag: "--model"
+  permission_auto: ["--dangerously-skip-permissions"]   # 跳过一切权限确认（高危）
+
+codex:
+  cmd: codex
+  args: ["exec", "--json", "--skip-git-repo-check", "{prompt}"]
+  parse: codex_ndjson
+  model_flag: "-m"
+  permission_auto: ["--sandbox", "workspace-write"]  # 工作区可写；--approve-for-me 与之互斥不可同用(实测)
+
+hermes:
+  cmd: hermes
+  args: ["-z", "{prompt}"]
+  parse: hermes_text
+  model_flag: "-m"
+  permission_auto: ["--yolo"]
+
+qwen:
+  cmd: qwen
+  args: ["-p", "{prompt}", "--output-format", "json", "--auth-type", "openai"]
+  parse: qwen_json
+  model_flag: "-m"
+  permission_auto: ["--yolo"]   # 全自动批准
+  env:                             # 认证类型无 dashscope，用 openai 兼容指向 DASHSCOPE
+    OPENAI_API_KEY: "${DASHSCOPE_API_KEY}"
+    OPENAI_BASE_URL: "${DASHSCOPE_BASE_URL}"
+    OPENAI_MODEL: "qwen-plus"
+
+gemini:
+  cmd: gemini
+  args: ["-p", "{prompt}", "--skip-trust"]
+  parse: text
+  model_flag: "-m"
+  env:
+    HTTP_PROXY: "http://127.0.0.1:10080"    # 墙内直连 Google 挂起，走本机代理
+    HTTPS_PROXY: "http://127.0.0.1:10080"
+    http_proxy: "http://127.0.0.1:10080"
+    https_proxy: "http://127.0.0.1:10080"
+  # 2026-08-18 实测：挂代理 127.0.0.1:10080 后可用（GEMINI_API_KEY 在 cc.env）
+
+opencode:
+  cmd: opencode
+  args: ["run", "{prompt}", "--format", "json"]
+  parse: opencode_json
+  model_flag: "-m"
+
+kimi:
+  cmd: kimi
+  args: ["-p", "{prompt}", "--output-format", "text"]
+  parse: text
+  model_flag: "-m"
+  # 注意：kimi --output-format 只支持 text|stream-json（实测），不支持 json
+
+cline:
+  cmd: cline
+  args: ["-P", "openai-compatible", "-m", "deepseek-v4-flash", "--json", "{prompt}"]
+  parse: cline_json
+  # 2026-08-18 实测：prompt 必须放最后（否则 "Unknown command"）；-P openai-compatible 指向 DeepSeek
+  # （cline auth openai -k $DEEPSEEK_API_KEY -m deepseek-v4-flash -b https://api.deepseek.com 已配置）
+  # 模型固定 deepseek-v4-flash；cline 默认 act 模式 auto-approve（护栏重点）
+
+dsh:
+  cmd: pnpm
+  args: ["dsh", "--profile", "headless", "{prompt}"]
+  cwd: ~/deepseek-harness
+  parse: text
+  # 2026-08-19：DeepSeek Harness headless 模式（一次性问答，模型 dsh 自管）

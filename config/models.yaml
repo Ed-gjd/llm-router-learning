@@ -1,0 +1,43 @@
+# models.yaml — 模型表（课1.2 升级：加档位 + 跨厂商降级链）
+# 档位 tier: flash(便宜快) / plus(均衡) / max(最强)。价格课1.3 校准，当前为占位。
+# fallback: 主模型失败时沿此链回退（跨厂商按"能力等价"，deepseek-chat 失败→qwen-plus）。
+
+- name: deepseek-v4-flash
+  provider: deepseek
+  tier: flash
+  context: 128000
+  price_in_per_mtok: 1.0     # 元 / 百万 token，占位待校准
+  price_out_per_mtok: 2.0
+  fallback: [qwen-plus]
+
+- name: qwen-plus
+  provider: qwen
+  tier: plus
+  context: 128000
+  price_in_per_mtok: 0.8
+  price_out_per_mtok: 2.0
+  fallback: [deepseek-v4-pro]
+
+- name: deepseek-v4-pro
+  provider: deepseek
+  tier: max
+  context: 128000
+  price_in_per_mtok: 2.0
+  price_out_per_mtok: 8.0
+  fallback: [qwen-plus]
+
+- name: kimi-k2.6
+  provider: kimi
+  tier: plus
+  context: 128000
+  price_in_per_mtok: 6.5      # 实测定价 元/百万；思考token按输出计
+  price_out_per_mtok: 27.0
+  fallback: [qwen-plus]
+
+- name: kimi-k2.7-code
+  provider: kimi
+  tier: max
+  context: 128000
+  price_in_per_mtok: 6.5
+  price_out_per_mtok: 27.0
+  fallback: [qwen-plus]
